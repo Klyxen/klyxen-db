@@ -60,6 +60,12 @@ Not intended for multi-user, online, or production environments.
 Removed: Redundant handling and old error-prone checks.
 - In progress, .mv -fl-f (move file to folder).
 ###
+### v1.4
+- Fixed broken paths, special character handling, extension issues, and missing files in .show, .del, and .tree.
+- Added .ren.(file name) for renaming, .ed.(file name) for editing files, full path support, and folder existence checks before operations.
+- Updated .tree, .show, and .del for cleaner output and better error handling.
+- Removed redundant file existence checks in .ed and .ren.
+###
 #
 ## Personal Comments
 - I think by far this is one of the hardest side project im working on. It is hard for a lot of reasons, and I am only just learning.
