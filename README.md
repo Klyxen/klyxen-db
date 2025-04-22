@@ -66,6 +66,13 @@ Removed: Redundant handling and old error-prone checks.
 - Updated .tree, .show, and .del for cleaner output and better error handling.
 - Removed redundant file existence checks in .ed and .ren.
 ###
+### v1.5 ( stable )
+- Updated KLYXEN v1.4 to KLYXEN v1.5.
+- Database Location Changed from hidden $HOME/.klyxen.db to visible $HOME/klyxen.db for easier user access.
+- Added 2>/dev/null to file operations (rm, mv, mkdir, touch, echo, cat, nano) in .show, .del, .ed, .rn, .mv, and main prompt to hide error messages and keep the terminal clean.
+- Corrected "Decryption pops failed" to "Decryption failed" in the decrypt_item function for folder decryption.
+- Added error messages for failed file reads in .show and file edits in .ed, making it clearer when operations fail (e.g., due to permissions).
+###
 #
 ## Personal Comments
 - I think by far this is one of the hardest side project im working on. It is hard for a lot of reasons, and I am only just learning.
