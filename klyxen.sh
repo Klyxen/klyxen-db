@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# === KLYXEN v1.3 ===
+# === KLYXEN v1.4 ===
 # Klyxen: A Local DB File Scripting Tool (Bash Version)
 
-# Exit on error, but we'll handle specific cases to prevent premature exit
+# Exit on error, but handle specific cases to prevent premature exit
 set -e
 
 # Dependencies Setup
@@ -38,8 +38,9 @@ mkdir -p "$DB_DIR"
 # Functions
 print_header() {
   clear
-  echo "${CYAN}==== KLYXEN v1.3 ====${RESET}"
+  echo "${CYAN}==== KLYXEN v1.4 ====${RESET}"
   echo "${CYAN}Local DB File Scripting Tool${RESET}"
+  echo "${CYAN}Database located at: $DB_DIR${RESET}"
 }
 
 command_help() {
@@ -119,7 +120,7 @@ search_klyxen() {
   if [ -z "$keyword" ]; then
     echo -e "${RED}Error: No search keyword provided.${RESET}"
     echo -e "${YELLOW}Suggestion: Use '.search [keyword]' to search for files or folders.${RESET}"
-    return
+    return 0
   fi
   echo -e "${CYAN}Searching for '$keyword' in $DB_DIR...${RESET}"
   results=$(find "$DB_DIR" -type f -o -type d -iname "*$keyword*" 2>/dev/null)
@@ -132,6 +133,7 @@ search_klyxen() {
       echo "  ${line#$DB_DIR/}"
     done
   fi
+  return 0
 }
 
 encrypt_item() {
@@ -140,17 +142,16 @@ encrypt_item() {
   if [ -z "$path" ]; then
     echo -e "${RED}Error: Invalid or no $type name provided.${RESET}"
     echo -e "${YELLOW}Suggestion: Use '.ps -e -$type [path]' to encrypt a $type.${RESET}"
-    return
+    return 0
   fi
-  if [ "$type" = "f" ] && [ -d "$DB_DIR/$path" ]; then
+  if [ "$type" = "f" ] &&34 [ -d "$DB_DIR/$path" ]; then
     echo -e "${CYAN}Enter password for encryption:${RESET}"
     read -rs password
     if [ -z "$password" ]; then
       echo -e "${RED}Error: No password provided.${RESET}"
-      return
+      return 0
     fi
-    tar -czf - -C "$DB_DIR" "$path" | gpg --batch --yes --passphrase "$password" -c > "$DB_DIR/$path.enc" 2>/dev/null
-    if [ $? -eq 0 ]; then
+    if tar -czf - -C "$DB_DIR" "$path" | gpg --batch --yes --passphrase "$password" -c > "$DB_DIR/$path.enc" 2>/dev/null; then
       rm -rf "$DB_DIR/$path"
       echo -e "${GREEN}Folder '$path' encrypted as '$path.enc' in $DB_DIR.${RESET}"
     else
@@ -162,7 +163,7 @@ encrypt_item() {
     read -rs password
     if [ -z "$password" ]; then
       echo -e "${RED}Error: No password provided.${RESET}"
-      return
+      return 0
     fi
     if gpg --batch --yes --passphrase "$password" -c "$DB_DIR/$path" 2>/dev/null; then
       mv "$DB_DIR/$path.gpg" "$DB_DIR/$path.enc" && rm "$DB_DIR/$path"
@@ -175,6 +176,7 @@ encrypt_item() {
     echo -e "${RED}$type '$path' not found in $DB_DIR.${RESET}"
     echo -e "${YELLOW}Suggestion: Check the path or use '.search [keyword]' to find it.${RESET}"
   fi
+  return 0
 }
 
 decrypt_item() {
@@ -187,21 +189,21 @@ decrypt_item() {
   if [ -z "$path" ]; then
     echo -e "${RED}Error: Invalid or no $type name provided.${RESET}"
     echo -e "${YELLOW}Suggestion: Use '.ps -d -$type [path]' to decrypt a $type.${RESET}"
-    return
+    return 0
   fi
   if [ "$type" = "f" ] && [ -f "$DB_DIR/$enc_path" ]; then
     echo -e "${CYAN}Enter password for decryption:${RESET}"
     read -rs password
     if [ -z "$password" ]; then
       echo -e "${RED}Error: No password provided.${RESET}"
-      return
+      return 0
     fi
     local dec_path="${path%.enc}"
     if gpg --batch --yes --passphrase "$password" -d "$DB_DIR/$enc_path" 2>/dev/null | tar -xzf - -C "$DB_DIR"; then
       rm "$DB_DIR/$enc_path"
       echo -e "${GREEN}Folder '$enc_path' decrypted to '$dec_path' in $DB_DIR.${RESET}"
     else
-      echo -e "${RED}Decryption failed for folder '$enc_path'.${RESET}"
+      echo -e "${RED}Decryption pops failed for folder '$enc_path'.${RESET}"
       echo -e "${YELLOW}Suggestion: Check the password or ensure the folder is encrypted with 'gpg'.${RESET}"
     fi
   elif [ "$type" = "fl" ] && [ -f "$DB_DIR/$enc_path" ]; then
@@ -209,7 +211,7 @@ decrypt_item() {
     read -rs password
     if [ -z "$password" ]; then
       echo -e "${RED}Error: No password provided.${RESET}"
-      return
+      return 0
     fi
     local dec_path="${path%.enc}"
     if gpg --batch --yes --passphrase "$password" -d "$DB_DIR/$enc_path" > "$DB_DIR/$dec_path" 2>/dev/null; then
@@ -223,6 +225,7 @@ decrypt_item() {
     echo -e "${RED}$type '$enc_path' not found in $DB_DIR.${RESET}"
     echo -e "${YELLOW}Suggestion: Check the path, ensure it ends with '.enc', or use '.search [keyword]' to find it.${RESET}"
   fi
+  return 0
 }
 
 run_command_mode() {
@@ -245,7 +248,7 @@ run_command_mode() {
             echo -e "${YELLOW}Suggestion: Use '.show -f [folder]' to view a folder.${RESET}"
           elif [ -d "$DB_DIR/$folder" ]; then
             echo -e "${PURPLE}${folder}${RESET}"
-            custom_tree "$DB_DIR/$folder" ""
+            custom_tree "$DB_DIR/$folder" "" || true
           else
             echo -e "${RED}Folder '$folder' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check the folder path or use '.tree' to view all folders.${RESET}"
@@ -267,13 +270,14 @@ run_command_mode() {
         fi
         ;;
       .del)
+        print_header
         if [[ "${arg_array[0]}" == -f ]]; then
           folder=$(sanitize_path "${arg_array[*]:1}")
           if [ -z "$folder" ]; then
             echo -e "${RED}Error: No folder name provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.del -f [folder]' to delete a folder.${RESET}"
           elif [ -d "$DB_DIR/$folder" ]; then
-            if [ "$(ls -A "$DB_DIR/$folder")" ]; then
+            if [ "$(ls -A "$DB_DIR/$folder" 2>/dev/null)" ]; then
               read -p "${YELLOW}Folder '$folder' is not empty. Delete anyway? (y/n): ${RESET}" confirm
               if [[ $confirm == y ]]; then
                 rm -rf "$DB_DIR/$folder" && echo -e "${GREEN}Folder '$folder' deleted from $DB_DIR.${RESET}"
@@ -304,6 +308,7 @@ run_command_mode() {
         fi
         ;;
       .ed)
+        print_header
         file=$(sanitize_path "${arg_array[*]:1}")
         if [[ "${arg_array[0]}" != -fl ]]; then
           echo -e "${RED}Invalid .ed command.${RESET}"
@@ -319,6 +324,7 @@ run_command_mode() {
         fi
         ;;
       .rn)
+        print_header
         if [[ "${arg_array[0]}" == -f ]]; then
           folder=$(sanitize_path "${arg_array[*]:1}")
           if [ -z "$folder" ]; then
@@ -369,6 +375,7 @@ run_command_mode() {
         fi
         ;;
       .ps)
+        print_header
         if [[ "${arg_array[0]}" == -e ]]; then
           if [[ "${arg_array[1]}" == -f ]]; then
             folder=$(sanitize_path "${arg_array[*]:2}")
@@ -407,6 +414,7 @@ run_command_mode() {
         fi
         ;;
       .mv)
+        print_header
         if [[ "${arg_array[0]}" == -fl-f ]]; then
           file=$(sanitize_path "${arg_array[1]}")
           folder=$(sanitize_path "${arg_array[2]}")
@@ -437,6 +445,7 @@ run_command_mode() {
         fi
         ;;
       .search)
+        print_header
         search_klyxen "$args"
         ;;
       .exit)
@@ -444,6 +453,7 @@ run_command_mode() {
         break
         ;;
       *)
+        print_header
         echo -e "${RED}Unknown command: '$cmd'.${RESET}"
         echo -e "${YELLOW}Suggestion: Use '.help' to see available commands.${RESET}"
         ;;
