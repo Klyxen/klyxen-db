@@ -45,7 +45,14 @@ Not intended for multi-user, online, or production environments.
 - Input sanitization and secure path processing
 - Optimized loading and command response speed
 ###
-  
+### v1.2
+- Added .ren.[filename] [newname] for quick renamed
+- Added .ed.[filename] for quick editing with nano
+- Improved command parsing logic for dot-prefixed commands
+- Fixed formatting in .tree output
+- Minor optimization on response handling and UI consistency
+- Inherits all v1.1 fixes (error handling, path checks, sanitization, and speed improvements)
+###
 ### Personal Comments
 - I think by far this is one of the hardest side project im working on. It is hard for a lot of reasons, and I am only just learning.
 - Coding them is a lot of time and I will keep on updating my skills to improve and develop this tool.
