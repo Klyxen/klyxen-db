@@ -53,8 +53,10 @@ Not intended for multi-user, online, or production environments.
 - Minor optimization on response handling and UI consistency
 - Inherits all v1.1 fixes (error handling, path checks, sanitization, and speed improvements)
 ###
-### Personal Comments
+#
+## Personal Comments
 - I think by far this is one of the hardest side project im working on. It is hard for a lot of reasons, and I am only just learning.
 - Coding them is a lot of time and I will keep on updating my skills to improve and develop this tool.
 - I have also used AI like Copilot to atleast help with some of the code. Still, I don't rely much because I only view AI as a tool and not a worker lmao.
 - I really hope I can improve everything and my skills too you know, I just want to grow because this is what I love to do.
+#
