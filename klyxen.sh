@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# === KLYXEN v1.1 ===
+# === KLYXEN v1.2 ===
 # Klyxen: A Local DB File Scripting Tool (Bash Version)
 
 # Exit on error
@@ -28,6 +28,7 @@ GREEN=$(tput setaf 2)
 RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 CYAN=$(tput setaf 6)
+PURPLE=$(tput setaf 5)
 RESET=$(tput sgr0)
 
 # Database Directory
@@ -37,7 +38,7 @@ mkdir -p "$DB_DIR"
 # Functions
 print_header() {
   clear
-  echo "${CYAN}==== KLYXEN v1.1 ====${RESET}"
+  echo "${CYAN}==== KLYXEN v1.2 ====${RESET}"
   echo "${CYAN}Local DB File Scripting Tool${RESET}"
 }
 
@@ -73,6 +74,44 @@ sanitize_path() {
   else
     echo "$path"
   fi
+}
+
+custom_tree() {
+  local dir="$1"
+  local prefix="$2"
+  local last_dir="${3:-}"
+
+  # Get list of directories and files
+  local items
+  items=$(ls -A "$dir" | sort)
+
+  # Count items for proper connector display
+  local item_count=0
+  local i=0
+  for item in $items; do
+    ((item_count++))
+  done
+
+  # Iterate through items
+  for item in $items; do
+    ((i++))
+    local path="$dir/$item"
+    local connector="|"
+    local spacing="|  "
+    if [ $i -eq $item_count ]; then
+      connector="\\"
+      spacing="   "
+    fi
+
+    # Determine item type and color
+    if [ -d "$path" ]; then
+      echo -e "${prefix}${connector}-- ${PURPLE}${item}${RESET}"
+      # Recursively call for subdirectories
+      custom_tree "$path" "${prefix}${spacing}" "$item"
+    else
+      echo -e "${prefix}${connector}-- ${YELLOW}${item}${RESET}"
+    fi
+  done
 }
 
 search_klyxen() {
@@ -205,7 +244,8 @@ run_command_mode() {
             echo -e "${RED}Error: No folder name provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.show -f [folder]' to view a folder.${RESET}"
           elif [ -d "$DB_DIR/$folder" ]; then
-            tree "$DB_DIR/$folder" 2>/dev/null || find "$DB_DIR/$folder" -print | sed -e "s|$DB_DIR/||" -e 's|[^/]*/|  |g' -e 's|  |  |g'
+            echo -e "${PURPLE}${folder}${RESET}"
+            custom_tree "$DB_DIR/$folder" ""
           else
             echo -e "${RED}Folder '$folder' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check the folder path or use '.tree' to view all folders.${RESET}"
@@ -362,7 +402,8 @@ run_command_mode() {
           echo -e "${RED}No folders or files in the database.${RESET}"
           echo -e "${YELLOW}Suggestion: Create a folder or file using option 1 in the main menu.${RESET}"
         else
-          tree "$DB_DIR" 2>/dev/null || find "$DB_DIR" -print | sed -e "s|$DB_DIR/||" -e 's|[^/]*/|  |g' -e 's|  |  |g'
+          echo -e "${PURPLE}$(basename "$DB_DIR")${RESET}"
+          custom_tree "$DB_DIR" ""
         fi
         ;;
       .mv)
@@ -487,7 +528,8 @@ while true; do
           echo -e "${RED}Folder '$view' is empty.${RESET}"
           echo -e "${YELLOW}Suggestion: Create files or subfolders in '$view' using option 1.${RESET}"
         else
-          ls -l "$DB_DIR/$view"
+          echo -e "${PURPLE}$view${RESET}"
+          custom_tree "$DB_DIR/$view" ""
         fi
       else
         echo -e "${RED}'$view' not found in $DB_DIR.${RESET}"
@@ -502,7 +544,8 @@ while true; do
         echo -e "${RED}No folders or files in the database.${RESET}"
         echo -e "${YELLOW}Suggestion: Create a folder or file using option 1 in the main menu.${RESET}"
       else
-        tree "$DB_DIR" 2>/dev/null || find "$DB_DIR" -print | sed -e "s|$DB_DIR/||" -e 's|[^/]*/|  |g' -e 's|  |  |g'
+        echo -e "${PURPLE}$(basename "$DB_DIR")${RESET}"
+        custom_tree "$DB_DIR" ""
       fi
       read -p "${YELLOW}Press enter to continue...${RESET}"
       ;;
