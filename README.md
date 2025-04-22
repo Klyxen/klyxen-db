@@ -27,7 +27,7 @@ Not intended for multi-user, online, or production environments.
 - Default DB path set to ~/.klyxen.db
 - Core file/folder handling logic
 ###
-### v0.2
+### v0.2 (Early Dev)
 - Added GPG encryption/decryption via .ps
 - Added rename command .rn
 - Basic error handling and cleaner CLI messages
