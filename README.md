@@ -53,6 +53,13 @@ Not intended for multi-user, online, or production environments.
 - Minor optimization on response handling and UI consistency
 - Inherits all v1.1 fixes (error handling, path checks, sanitization, and speed improvements)
 ###
+### v1.3
+- Added .ed -fl to edit files, .rn -f and -fl to rename, .ps -e and -d to encrypt/decrypt, and full path input cleaning.
+- Updated .show, .del, and .tree with cleaner output and better logic.
+- Fixed Broken paths, duplicate code, and command misreads.
+Removed: Redundant handling and old error-prone checks.
+- In progress, .mv -fl-f (move file to folder).
+###
 #
 ## Personal Comments
 - I think by far this is one of the hardest side project im working on. It is hard for a lot of reasons, and I am only just learning.
