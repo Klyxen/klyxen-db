@@ -39,7 +39,7 @@ Not intended for multi-user, online, or production environments.
 - Cleanup fixes for delete and file outputs
 - Improved structure creation and validation
 ###
-### v1.1 (Stable)
+### v1.1
 - Fixed file type checks in .show -fl
 - Improved error handling for paths and non-existing files
 - Input sanitization and secure path processing
