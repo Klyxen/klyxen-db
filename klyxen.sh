@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# === KLYXEN v1.2 ===
+# === KLYXEN v1.3 ===
 # Klyxen: A Local DB File Scripting Tool (Bash Version)
 
-# Exit on error
+# Exit on error, but we'll handle specific cases to prevent premature exit
 set -e
 
 # Dependencies Setup
@@ -38,7 +38,7 @@ mkdir -p "$DB_DIR"
 # Functions
 print_header() {
   clear
-  echo "${CYAN}==== KLYXEN v1.2 ====${RESET}"
+  echo "${CYAN}==== KLYXEN v1.3 ====${RESET}"
   echo "${CYAN}Local DB File Scripting Tool${RESET}"
 }
 
@@ -66,10 +66,10 @@ command_help() {
 
 sanitize_path() {
   local path="$1"
-  # Remove leading/trailing slashes and normalize path
-  path=$(echo "$path" | sed 's|^/*||;s|/*$||;s|//*|/|g')
-  # Prevent directory traversal
-  if [[ "$path" =~ \.\./|\.\. ]]; then
+  # Remove leading/trailing slashes, normalize multiple slashes, and trim spaces
+  path=$(echo "$path" | sed 's|^/*||;s|/*$||;s|//*|/|g;s|^\s*||;s|\s*$||')
+  # Prevent directory traversal and empty paths
+  if [[ -z "$path" || "$path" =~ \.\./|\.\. || "$path" =~ ^\s*$ ]]; then
     echo ""
   else
     echo "$path"
@@ -79,21 +79,22 @@ sanitize_path() {
 custom_tree() {
   local dir="$1"
   local prefix="$2"
-  local last_dir="${3:-}"
+  local items=()
 
-  # Get list of directories and files
-  local items
-  items=$(ls -A "$dir" | sort)
+  # Get directories and files at current level, suppress errors
+  while IFS= read -r item; do
+    [[ -n "$item" ]] && items+=("$item")
+  done < <(find "$dir" -maxdepth 1 -not -path "$dir" -exec basename {} \; 2>/dev/null | sort)
 
-  # Count items for proper connector display
-  local item_count=0
+  local item_count=${#items[@]}
   local i=0
-  for item in $items; do
-    ((item_count++))
-  done
 
-  # Iterate through items
-  for item in $items; do
+  if [ $item_count -eq 0 ]; then
+    echo -e "${prefix}|-- ${RED}(empty)${RESET}"
+    return 0
+  fi
+
+  for item in "${items[@]}"; do
     ((i++))
     local path="$dir/$item"
     local connector="|"
@@ -103,15 +104,14 @@ custom_tree() {
       spacing="   "
     fi
 
-    # Determine item type and color
     if [ -d "$path" ]; then
       echo -e "${prefix}${connector}-- ${PURPLE}${item}${RESET}"
-      # Recursively call for subdirectories
-      custom_tree "$path" "${prefix}${spacing}" "$item"
+      custom_tree "$path" "${prefix}${spacing}"
     else
       echo -e "${prefix}${connector}-- ${YELLOW}${item}${RESET}"
     fi
   done
+  return 0
 }
 
 search_klyxen() {
@@ -398,12 +398,12 @@ run_command_mode() {
         ;;
       .tree)
         print_header
-        if [ -z "$(ls -A "$DB_DIR")" ]; then
+        if [ -z "$(ls -A "$DB_DIR" 2>/dev/null)" ]; then
           echo -e "${RED}No folders or files in the database.${RESET}"
           echo -e "${YELLOW}Suggestion: Create a folder or file using option 1 in the main menu.${RESET}"
         else
           echo -e "${PURPLE}$(basename "$DB_DIR")${RESET}"
-          custom_tree "$DB_DIR" ""
+          custom_tree "$DB_DIR" "" || true
         fi
         ;;
       .mv)
@@ -524,12 +524,12 @@ while true; do
           echo -e "${YELLOW}Suggestion: Use '.ed -fl \"$view\"' to edit the file and add content.${RESET}"
         fi
       elif [ -d "$DB_DIR/$view" ]; then
-        if [ -z "$(ls -A "$DB_DIR/$view")" ]; then
+        if [ -z "$(ls -A "$DB_DIR/$view" 2>/dev/null)" ]; then
           echo -e "${RED}Folder '$view' is empty.${RESET}"
           echo -e "${YELLOW}Suggestion: Create files or subfolders in '$view' using option 1.${RESET}"
         else
           echo -e "${PURPLE}$view${RESET}"
-          custom_tree "$DB_DIR/$view" ""
+          custom_tree "$DB_DIR/$view" "" || true
         fi
       else
         echo -e "${RED}'$view' not found in $DB_DIR.${RESET}"
@@ -540,12 +540,12 @@ while true; do
     3)
       clear
       print_header
-      if [ -z "$(ls -A "$DB_DIR")" ]; then
+      if [ -z "$(ls -A "$DB_DIR" 2>/dev/null)" ]; then
         echo -e "${RED}No folders or files in the database.${RESET}"
         echo -e "${YELLOW}Suggestion: Create a folder or file using option 1 in the main menu.${RESET}"
       else
         echo -e "${PURPLE}$(basename "$DB_DIR")${RESET}"
-        custom_tree "$DB_DIR" ""
+        custom_tree "$DB_DIR" "" || true
       fi
       read -p "${YELLOW}Press enter to continue...${RESET}"
       ;;
