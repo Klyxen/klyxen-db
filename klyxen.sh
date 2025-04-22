@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# === KLYXEN v1.4 ===
+# === KLYXEN v1.5 ===
 # Klyxen: A Local DB File Scripting Tool (Bash Version)
 
 # Exit on error, but handle specific cases to prevent premature exit
@@ -31,14 +31,14 @@ CYAN=$(tput setaf 6)
 PURPLE=$(tput setaf 5)
 RESET=$(tput sgr0)
 
-# Database Directory
-DB_DIR="$HOME/.klyxen.db"
+# Database Directory (Moved to a visible location)
+DB_DIR="$HOME/klyxen.db"
 mkdir -p "$DB_DIR"
 
 # Functions
 print_header() {
   clear
-  echo "${CYAN}==== KLYXEN v1.4 ====${RESET}"
+  echo "${CYAN}==== KLYXEN v1.5 ====${RESET}"
   echo "${CYAN}Local DB File Scripting Tool${RESET}"
   echo "${CYAN}Database located at: $DB_DIR${RESET}"
 }
@@ -144,7 +144,7 @@ encrypt_item() {
     echo -e "${YELLOW}Suggestion: Use '.ps -e -$type [path]' to encrypt a $type.${RESET}"
     return 0
   fi
-  if [ "$type" = "f" ] &&34 [ -d "$DB_DIR/$path" ]; then
+  if [ "$type" = "f" ] && [ -d "$DB_DIR/$path" ]; then
     echo -e "${CYAN}Enter password for encryption:${RESET}"
     read -rs password
     if [ -z "$password" ]; then
@@ -203,7 +203,7 @@ decrypt_item() {
       rm "$DB_DIR/$enc_path"
       echo -e "${GREEN}Folder '$enc_path' decrypted to '$dec_path' in $DB_DIR.${RESET}"
     else
-      echo -e "${RED}Decryption pops failed for folder '$enc_path'.${RESET}"
+      echo -e "${RED}Decryption failed for folder '$enc_path'.${RESET}"
       echo -e "${YELLOW}Suggestion: Check the password or ensure the folder is encrypted with 'gpg'.${RESET}"
     fi
   elif [ "$type" = "fl" ] && [ -f "$DB_DIR/$enc_path" ]; then
@@ -259,7 +259,7 @@ run_command_mode() {
             echo -e "${RED}Error: No file name provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.show -fl [file]' to view a file.${RESET}"
           elif [ -f "$DB_DIR/$file" ]; then
-            cat "$DB_DIR/$file"
+            cat "$DB_DIR/$file" 2>/dev/null || echo -e "${RED}Error reading file '$file'.${RESET}"
           else
             echo -e "${RED}File '$file' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check the file path or use '.search [keyword]' to find it.${RESET}"
@@ -280,12 +280,12 @@ run_command_mode() {
             if [ "$(ls -A "$DB_DIR/$folder" 2>/dev/null)" ]; then
               read -p "${YELLOW}Folder '$folder' is not empty. Delete anyway? (y/n): ${RESET}" confirm
               if [[ $confirm == y ]]; then
-                rm -rf "$DB_DIR/$folder" && echo -e "${GREEN}Folder '$folder' deleted from $DB_DIR.${RESET}"
+                rm -rf "$DB_DIR/$folder" 2>/dev/null && echo -e "${GREEN}Folder '$folder' deleted from $DB_DIR.${RESET}"
               else
                 echo -e "${YELLOW}Deletion canceled.${RESET}"
               fi
             else
-              rm -rf "$DB_DIR/$folder" && echo -e "${GREEN}Folder '$folder' deleted from $DB_DIR.${RESET}"
+              rm -rf "$DB_DIR/$folder" 2>/dev/null && echo -e "${GREEN}Folder '$folder' deleted from $DB_DIR.${RESET}"
             fi
           else
             echo -e "${RED}Folder '$folder' not found in $DB_DIR.${RESET}"
@@ -297,7 +297,7 @@ run_command_mode() {
             echo -e "${RED}Error: No file name provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.del -fl [file]' to delete a file.${RESET}"
           elif [ -f "$DB_DIR/$file" ]; then
-            rm "$DB_DIR/$file" && echo -e "${GREEN}File '$file' deleted from $DB_DIR.${RESET}"
+            rm "$DB_DIR/$file" 2>/dev/null && echo -e "${GREEN}File '$file' deleted from $DB_DIR.${RESET}"
           else
             echo -e "${RED}File '$file' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check the file path or use '.search [keyword]' to find it.${RESET}"
@@ -317,7 +317,7 @@ run_command_mode() {
           echo -e "${RED}Error: No file name provided.${RESET}"
           echo -e "${YELLOW}Suggestion: Use '.ed -fl [file]' to edit a file.${RESET}"
         elif [ -f "$DB_DIR/$file" ]; then
-          nano "$DB_DIR/$file"
+          nano "$DB_DIR/$file" 2>/dev/null || echo -e "${RED}Error editing file '$file'.${RESET}"
         else
           echo -e "${RED}File '$file' not found in $DB_DIR.${RESET}"
           echo -e "${YELLOW}Suggestion: Check the file path or create a new file with option 1 in the main menu.${RESET}"
@@ -340,8 +340,8 @@ run_command_mode() {
               echo -e "${RED}Error: Name '$new' already exists in $DB_DIR.${RESET}"
               echo -e "${YELLOW}Suggestion: Choose a different name.${RESET}"
             else
-              mkdir -p "$(dirname "$DB_DIR/$new")"
-              mv "$DB_DIR/$folder" "$DB_DIR/$new" && echo -e "${GREEN}Folder renamed to '$new' in $DB_DIR.${RESET}"
+              mkdir -p "$(dirname "$DB_DIR/$new")" 2>/dev/null
+              mv "$DB_DIR/$folder" "$DB_DIR/$new" 2>/dev/null && echo -e "${GREEN}Folder renamed to '$new' in $DB_DIR.${RESET}"
             fi
           else
             echo -e "${RED}Folder '$folder' not found in $DB_DIR.${RESET}"
@@ -362,8 +362,8 @@ run_command_mode() {
               echo -e "${RED}Error: Name '$new' already exists in $DB_DIR.${RESET}"
               echo -e "${YELLOW}Suggestion: Choose a different name.${RESET}"
             else
-              mkdir -p "$(dirname "$DB_DIR/$new")"
-              mv "$DB_DIR/$file" "$DB_DIR/$new" && echo -e "${GREEN}File renamed to '$new' in $DB_DIR.${RESET}"
+              mkdir -p "$(dirname "$DB_DIR/$new")" 2>/dev/null
+              mv "$DB_DIR/$file" "$DB_DIR/$new" 2>/dev/null && echo -e "${GREEN}File renamed to '$new' in $DB_DIR.${RESET}"
             fi
           else
             echo -e "${RED}File '$file' not found in $DB_DIR.${RESET}"
@@ -422,7 +422,7 @@ run_command_mode() {
             echo -e "${RED}Error: Both file and folder names must be provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.mv -fl-f [file] [folder]' to move a file.${RESET}"
           elif [ -f "$DB_DIR/$file" ] && [ -d "$DB_DIR/$folder" ]; then
-            mv "$DB_DIR/$file" "$DB_DIR/$folder/" && echo -e "${GREEN}File '$file' moved to '$folder' in $DB_DIR.${RESET}"
+            mv "$DB_DIR/$file" "$DB_DIR/$folder/" 2>/dev/null && echo -e "${GREEN}File '$file' moved to '$folder' in $DB_DIR.${RESET}"
           else
             echo -e "${RED}Error: File '$file' or folder '$folder' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check names or paths or use '.tree' to view structure.${RESET}"
@@ -434,7 +434,7 @@ run_command_mode() {
             echo -e "${RED}Error: Both folder names must be provided.${RESET}"
             echo -e "${YELLOW}Suggestion: Use '.mv -f-f [folder1] [folder2]' to move a folder.${RESET}"
           elif [ -d "$DB_DIR/$folder1" ] && [ -d "$DB_DIR/$folder2" ]; then
-            mv "$DB_DIR/$folder1" "$DB_DIR/$folder2/" && echo -e "${GREEN}Folder '$folder1' moved to '$folder2' in $DB_DIR.${RESET}"
+            mv "$DB_DIR/$folder1" "$DB_DIR/$folder2/" 2>/dev/null && echo -e "${GREEN}Folder '$folder1' moved to '$folder2' in $DB_DIR.${RESET}"
           else
             echo -e "${RED}Error: Folder '$folder1' or '$folder2' not found in $DB_DIR.${RESET}"
             echo -e "${YELLOW}Suggestion: Check names or paths or use '.tree' to view structure.${RESET}"
@@ -500,17 +500,17 @@ while true; do
         continue
       fi
       if [ "$type" == "dir" ]; then
-        mkdir -p "$DB_DIR/$name"
+        mkdir -p "$DB_DIR/$name" 2>/dev/null
         echo -e "${GREEN}Directory '$name' created in $DB_DIR.${RESET}"
       else
-        mkdir -p "$(dirname "$DB_DIR/$name")"
+        mkdir -p "$(dirname "$DB_DIR/$name")" 2>/dev/null
         echo -ne "${CYAN}Enter data (leave empty to create empty file): ${RESET}"
         read -r data
         if [ -z "$data" ]; then
-          touch "$DB_DIR/$name"
+          touch "$DB_DIR/$name" 2>/dev/null
           echo -e "${GREEN}Empty file '$name' created in $DB_DIR.${RESET}"
         else
-          echo "$data" > "$DB_DIR/$name"
+          echo "$data" > "$DB_DIR/$name" 2>/dev/null
           echo -e "${GREEN}File '$name' with data created in $DB_DIR.${RESET}"
         fi
       fi
@@ -528,7 +528,7 @@ while true; do
         echo -e "${YELLOW}Suggestion: Provide a folder or file path to view.${RESET}"
       elif [ -f "$DB_DIR/$view" ]; then
         if [ -s "$DB_DIR/$view" ]; then
-          cat "$DB_DIR/$view"
+          cat "$DB_DIR/$view" 2>/dev/null || echo -e "${RED}Error reading file '$view'.${RESET}"
         else
           echo -e "${RED}File '$view' is empty.${RESET}"
           echo -e "${YELLOW}Suggestion: Use '.ed -fl \"$view\"' to edit the file and add content.${RESET}"
