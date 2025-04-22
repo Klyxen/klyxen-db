@@ -1,5 +1,8 @@
 # KLYXEN DB
 A lightweight, offline file-based "database" system written in Bash. It stores and manages data using simple folders and files inside your home directory, designed for local file operations without needing an actual database engine.
+This tool is designed for local use only on your own machine.
+Not intended for multi-user, online, or production environments.
+
 ###
 ## How to Download and Run
 'on terminal'
