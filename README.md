@@ -1,20 +1,17 @@
-# klyxen-db
-I'll start this project to automate stuff in bulks.
+#Klyxen-DB
+- A project to automate tasks in bulk using KLYXEN.
 
 
-Klyxen Prototype Test
-
-- Created structure and basic commands for the code
-- Format for the code structure
-
-
-Klyxen v1.0
-
-- created simple structure for the code
-- Added more commands and functions
-- Cleaner code
+#Prototype Test
+- Created the initial structure and basic commands
+- Defined the standard code format
 
 
-Klyxen v1.1
+#Klyxen v1.0
+- Developed a simple and clean structure for the code
+- Added new commands and core functions
+- Improved code readability
 
-- Improved functions
+
+#Klyxen v1.1
+- Enhanced and optimized core functions
